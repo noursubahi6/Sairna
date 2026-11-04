@@ -1,0 +1,132 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    color-scheme: light;
+    --bg: #f8fafb;
+    --surface: #fff;
+    --surface-alt: #f2f7f8;
+    --text: #112f41;
+    --muted: #718493;
+    --border: #e4ecef;
+    --primary: #0aa99b;
+    --primary-deep: #078e87;
+    --dark: #103a4e;
+    --dark-deep: #0a2c3e;
+    --soft-teal: #e6f8f3;
+    --shadow: 0 15px 55px rgba(19, 54, 72, 0.065);
+    --shadow-md: 0 22px 60px rgba(19, 54, 72, 0.11);
+    --radius: 22px;
+    --container: 1216px;
+    --font: Cairo, "Segoe UI", Tahoma, sans-serif;
+  }
+
+  :root[data-theme="dark"],
+  .dark {
+    color-scheme: dark;
+    --bg: #0b1c29;
+    --surface: #112b3b;
+    --surface-alt: #173748;
+    --text: #eef8fa;
+    --muted: #9eb3be;
+    --border: #254252;
+    --dark: #0e2634;
+    --dark-deep: #091c27;
+    --soft-teal: #174b49;
+    --shadow: 0 15px 55px rgba(0, 0, 0, 0.16);
+    --shadow-md: 0 22px 60px rgba(0, 0, 0, 0.26);
+  }
+}
+
+@theme {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-alt: var(--surface-alt);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-deep: var(--primary-deep);
+  --color-dark: var(--dark);
+  --color-dark-deep: var(--dark-deep);
+  --color-soft-teal: var(--soft-teal);
+
+  --radius-sairna: var(--radius);
+  --shadow-sairna: var(--shadow);
+  --shadow-sairna-md: var(--shadow-md);
+  --font-cairo: var(--font);
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+html {
+  scroll-behavior: smooth;
+}
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+button {
+  cursor: pointer;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+img,
+svg {
+  vertical-align: middle;
+}
+img {
+  max-width: 100%;
+}
+button,
+input,
+select {
+  outline-offset: 3px;
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #4cc8bf;
+  outline-offset: 3px;
+}
+h1,
+h2,
+h3,
+h4,
+p {
+  margin-top: 0;
+}
+h1,
+h2,
+h3,
+h4 {
+  line-height: 1.5;
+  font-weight: 800;
+}
+p {
+  color: var(--muted);
+}
+.container {
+  width: min(var(--container), calc(100% - 68px));
+  margin-inline: auto;
+}
+.section {
+  padding-block: var(--space-xl);
+}
