@@ -73,17 +73,11 @@ body {
 html {
   scroll-behavior: smooth;
 }
-button,
-input,
-select,
-textarea {
-  font: inherit;
-}
+
 button {
   cursor: pointer;
 }
 a {
-  color: inherit;
   text-decoration: none;
 }
 img,
@@ -93,19 +87,7 @@ svg {
 img {
   max-width: 100%;
 }
-button,
-input,
-select {
-  outline-offset: 3px;
-}
-button:focus-visible,
-a:focus-visible,
-input:focus-visible,
-select:focus-visible,
-summary:focus-visible {
-  outline: 3px solid #4cc8bf;
-  outline-offset: 3px;
-}
+
 h1,
 h2,
 h3,
