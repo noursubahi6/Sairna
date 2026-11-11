@@ -1,20 +1,49 @@
-import TripSearchForm from "../../search/TripSearchForm";
 import PageHeader from "../../components/PAGhkjf/page-hero";
-import { useState } from "react";
-import { CheckCircle2, RotateCcw, SlidersHorizontal } from "lucide-react";
-import TripCard from "../../components/TripCard/TripCard";
-import { useTrips } from "../../hooks/useTrips";
+import { useMemo, useState } from "react";
+import TripCard from "../../components/TripCard";
+import { useCompanies, useTrips } from "../../hooks/useTrips";
+import { FiltersSidebar } from "../../components/FiltersSidebar";
+import { CompanySelector } from "../../components/CompanySelector";
 
-function Book() {
-  const [filters, setFilters] = useState({
-    originId: 2,
-    destinationId: 1,
-    date: "2026-11-05",
-  });
-  const handleSearch = (searchData) => {
-    console.log("بحث الرئيسية:", searchData);
-  };
-  const { data: trips, isLoading, isError, error } = useTrips(filters);
+export const Book = () => {
+  const [selectedCompanyId, setSelectedCompanyId] = useState(null);
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState('all');
+
+  // 1. جلب الشركات
+  const { data: companiesData } = useCompanies();
+  const companies = companiesData || [];
+
+  // 2. جلب جميع الرحلات بدون إرسال باراميترات تسبب خطأ 400
+  const { data: tripsData, isPending: isTripsLoading } = useTrips();
+  const trips = tripsData || [];
+
+  // 3. الفلترة المحلية المدمجة (للشركة + وقت الانطلاق) لتجنب أخطاء السيرفر
+  const filteredTrips = useMemo(() => {
+    return trips.filter((trip) => {
+      // فلترة الشركة
+      if (selectedCompanyId !== null) {
+        const tripCompId = trip.company?.id || trip.company_id;
+        if (tripCompId !== selectedCompanyId) {
+          return false;
+        }
+      }
+
+      // فلترة أوقات الانطلاق
+      if (selectedTimeSlot === 'all') return true;
+
+      const timeString = trip.departureAt || trip.departureTime;
+      if (!timeString) return true;
+
+      const hour = new Date(timeString).getHours();
+
+      if (selectedTimeSlot === 'morning') return hour < 12;
+      if (selectedTimeSlot === 'afternoon') return hour >= 12 && hour < 17;
+      if (selectedTimeSlot === 'evening') return hour >= 17;
+
+      return true;
+    });
+  }, [trips, selectedCompanyId, selectedTimeSlot]);
+
   return (
     <section className="container py-8">
       <PageHeader
@@ -26,76 +55,49 @@ function Book() {
         titleHighlight="بتشبهك."
         description="قارن بين الشركات والأوقات، واحجز مقعدك بكل سهولة."
       />
-      <TripSearchForm onSearch={handleSearch} showTitleSection={false} />
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mt-8">
-        {/* قائمة الرحلات (يسار/يمين حسب الترتيب) */}
-        <div className="lg:col-span-3 flex flex-col gap-4">
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="text-sm font-extrabold text-text">
-              {trips ? `${trips.length || 1} رحلات متاحة` : "جاري البحث..."}
-            </h2>
+      <div className="max-w-7xl mx-auto px-4 py-8 font-cairo" dir="rtl">
+        <CompanySelector
+          companies={companies}
+          selectedCompanyId={selectedCompanyId}
+          onSelectCompany={setSelectedCompanyId}
+        />
+
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div className="lg:col-span-1">
+            <FiltersSidebar
+              companies={companies}
+              selectedCompanyId={selectedCompanyId}
+              onSelectCompany={setSelectedCompanyId}
+              selectedTimeSlot={selectedTimeSlot}
+              onSelectTimeSlot={setSelectedTimeSlot}
+            />
           </div>
 
-          {isLoading && <div className="text-center py-12 text-muted font-bold">جاري تحميل الرحلات...</div>}
-          {isError && <div className="text-center py-12 text-red-500 font-bold">{error?.message}</div>}
-
-          {/* عرض الكروت */}
-          {trips &&
-            trips.map((trip) => (
-              <TripCard
-                key={trip.id}
-                trip={trip}
-                onSelectSeats={(id) => console.log(" الانتقال لاختيار مقاعد الرحلة رقم:", id)}
-              />
-            ))}
-        </div>
-
-        {/* السايدبار الجانبي للفلترة (Filters Sidebar) */}
-        <div className="lg:col-span-1 bg-surface border border-border rounded-[24px] p-6 h-fit sticky top-6">
-          <div className="flex items-center justify-between pb-4 border-b border-border mb-6">
-            <span className="flex items-center gap-2 text-xs font-black text-text">
-              <SlidersHorizontal className="w-4 h-4 text-primary" /> تصفية النتائج
-            </span>
-            <button className="text-[11px] text-muted hover:text-primary flex items-center gap-1 font-bold transition-colors">
-              <RotateCcw className="w-3 h-3" /> إعادة ضبط
-            </button>
-          </div>
-
-          {/* فلتر الشركات */}
-          <div className="mb-6">
-            <h4 className="text-xs font-black text-text mb-3">شركة النقل</h4>
-            <div className="flex flex-col gap-2 text-xs text-muted font-bold">
-              <label className="flex items-center justify-between cursor-pointer">
-                <span className="flex items-center gap-2">
-                  <input type="radio" name="company" defaultChecked className="accent-primary" /> كل الشركات
-                </span>
-                <span className="bg-surface-alt px-2 py-0.5 rounded-full text-[10px]">6</span>
-              </label>
-              <label className="flex items-center justify-between cursor-pointer">
-                <span className="flex items-center gap-2">
-                  <input type="radio" name="company" className="accent-primary" /> الشام للنقل
-                </span>
-                <span className="bg-surface-alt px-2 py-0.5 rounded-full text-[10px]">2</span>
-              </label>
-              <label className="flex items-center justify-between cursor-pointer">
-                <span className="flex items-center gap-2">
-                  <input type="radio" name="company" className="accent-primary" /> الفرات للسياحة
-                </span>
-                <span className="bg-surface-alt px-2 py-0.5 rounded-full text-[10px]">2</span>
-              </label>
+          <div className="lg:col-span-3">
+            <div className="mb-4 text-sm font-bold text-slate-700">
+              {filteredTrips.length} رحلات متاحة
             </div>
-          </div>
 
-          {/* شارة الأمان */}
-          <div className="bg-soft-teal/50 border border-primary/20 rounded-2xl p-4 text-center">
-            <CheckCircle2 className="w-6 h-6 text-primary mx-auto mb-2" />
-            <h5 className="text-xs font-black text-text mb-1">الحجز بشكل واضح</h5>
-            <p className="text-[10px] text-muted leading-relaxed">كل تفاصيل الرحلة أمامك قبل التأكيد.</p>
+            {isTripsLoading ? (
+              <div className="text-center py-12 text-slate-400 font-medium">جاري تحميل الرحلات...</div>
+            ) : filteredTrips.length === 0 ? (
+              <div className="bg-white rounded-2xl p-8 text-center text-slate-500 border border-slate-100 shadow-sm">
+                لا توجد رحلات مطابقة للفلتر المحدد.
+              </div>
+            ) : (
+              filteredTrips.map((trip) => (
+                <TripCard
+                  key={trip.id}
+                  trip={trip}
+                  onSelectSeats={(id) => console.log('رحلة رقم:', id)}
+                />
+              ))
+            )}
           </div>
         </div>
       </div>
     </section>
   );
-}
+};
 
 export default Book;
