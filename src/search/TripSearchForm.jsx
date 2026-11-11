@@ -12,7 +12,7 @@ export default function TripSearchForm({
 }) {
   const { data: cities = [], isLoading } = useCities();
 
-  const [fromCity, setFromCity] = useState("");
+  const [fromCity, setFromCity] = useState("");                    
   const [toCity, setToCity] = useState("");
   const [tripDate, setTripDate] = useState("2026-11-06");
   const [passengers, setPassengers] = useState("1");
@@ -179,6 +179,7 @@ export default function TripSearchForm({
             variant="primary"
             icon={Search}
             iconPosition="right"
+            to="/book"
             className="w-full h-[60px] text-xs font-extrabold justify-center !rounded-[11px]"
           >
             ابحث عن رحلات
