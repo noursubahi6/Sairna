@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { MapPin, Calendar, Users, Search, ArrowRightLeft, Sparkles, Loader2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useCities } from "../hooks/useCities";
 import Button from "../components/button/Button";
 
@@ -10,30 +11,45 @@ export default function TripSearchForm({
   badgeText = "الحجز بـ 3 خطوات",
   showTitleSection = true
 }) {
+  const navigate = useNavigate();
   const { data: cities = [], isLoading } = useCities();
 
-  const [fromCity, setFromCity] = useState("");                    
-  const [toCity, setToCity] = useState("");
+  const [originId, setOriginId] = useState("");
+  const [destinationId, setDestinationId] = useState("");
   const [tripDate, setTripDate] = useState("2026-11-06");
   const [passengers, setPassengers] = useState("1");
 
+  // تعيين أول مدينتين كافتراضيات عند جلب القائمة من الـ API
   useEffect(() => {
     if (cities.length > 1) {
-      setFromCity(cities[0].name);
-      setToCity(cities[1].name);
+      setOriginId(cities[0].id);
+      setDestinationId(cities[1].id);
     }
   }, [cities]);
 
   const handleSwapCities = () => {
-    setFromCity(toCity);
-    setToCity(fromCity);
+    const temp = originId;
+    setOriginId(destinationId);
+    setDestinationId(temp);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    // بناء معاملات البحث وإرسالها إلى الـ URL لكي تقرأها صفحة Book مباشرة
+    const params = new URLSearchParams({
+      originId,
+      destinationId,
+      date: tripDate,
+      passengers,
+    });
+
     if (onSearch) {
-      onSearch({ fromCity, toCity, tripDate, passengers });
+      onSearch({ originId, destinationId, tripDate, passengers });
     }
+
+    // الانتقال لصفحة النتائج مع البارامترات الحقيقية للـ API
+    navigate(`/book?${params.toString()}`);
   };
 
   return (
@@ -85,12 +101,12 @@ export default function TripSearchForm({
                 </div>
               ) : (
                 <select
-                  value={fromCity}
-                  onChange={(e) => setFromCity(e.target.value)}
+                  value={originId}
+                  onChange={(e) => setOriginId(e.target.value)}
                   className="w-full bg-transparent text-sm font-extrabold text-text outline-none cursor-pointer appearance-none text-right truncate"
                 >
                   {cities.map((city) => (
-                    <option key={city.id} value={city.name} className="bg-surface text-text">
+                    <option key={city.id} value={city.id} className="bg-surface text-text">
                       {city.name}
                     </option>
                   ))}
@@ -125,12 +141,12 @@ export default function TripSearchForm({
                 </div>
               ) : (
                 <select
-                  value={toCity}
-                  onChange={(e) => setToCity(e.target.value)}
+                  value={destinationId}
+                  onChange={(e) => setDestinationId(e.target.value)}
                   className="w-full bg-transparent text-sm font-extrabold text-text outline-none cursor-pointer appearance-none text-right truncate"
                 >
                   {cities.map((city) => (
-                    <option key={city.id} value={city.name} className="bg-surface text-text">
+                    <option key={city.id} value={city.id} className="bg-surface text-text">
                       {city.name}
                     </option>
                   ))}
@@ -179,7 +195,6 @@ export default function TripSearchForm({
             variant="primary"
             icon={Search}
             iconPosition="right"
-            to="/book"
             className="w-full h-[60px] text-xs font-extrabold justify-center !rounded-[11px]"
           >
             ابحث عن رحلات

@@ -1,5 +1,20 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import axios from 'axios';
 import { getCompanies, getTrips, getTripSeats } from '../services/api';
+
+// إنشاء عميل Axios مخصص لضمان إرفاق الـ Token تلقائياً مع كل طلب (مثل الحجز)
+const api = axios.create({
+  baseURL: 'https://sairna.abdulrahman-hares.com/api/v1',
+});
+
+// إضافة الـ Token تلقائياً من الـ localStorage إلى الـ Headers
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
 export const useCompanies = () => {
   return useQuery({
@@ -9,10 +24,10 @@ export const useCompanies = () => {
   });
 };
 
-export const useTrips = () => {
+export const useTrips = (filters = {}) => {
   return useQuery({
-    queryKey: ['trips'],
-    queryFn: getTrips,
+    queryKey: ['trips', filters],
+    queryFn: () => getTrips(filters),
     staleTime: 1000 * 60 * 5,
     select: (data) => {
       const tripsArray = Array.isArray(data) ? data : (data?.data || data?.trips || []);
@@ -27,26 +42,30 @@ export const useTrips = () => {
   });
 };
 
-export const useTripSeats = (id) => {
+export const useTripSeats = (tripId) => {
   return useQuery({
-    queryKey: ['tripSeats', id],
-    queryFn: () => getTripSeats(id),
-    enabled: !!id,
+    queryKey: ['tripSeats', tripId],
+    queryFn: () => getTripSeats(tripId),
+    enabled: !!tripId,
   });
-}
+};
 
-// هوك لإنشاء حجز (Mutation)
+// تحديث هوك إنشاء الحجز ليستخدم العميل الموثق وتجنب خطأ 401 Unauthorized
 export function useCreateBooking() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: createBooking,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['trips'] });
-      alert("تم الحجز بنجاح!");
+    mutationFn: async (bookingData) => {
+      // إرسال الطلب مع الـ Token المرفق تلقائياً
+      const response = await api.post('/website/bookings', bookingData);
+      return response.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['tripSeats'] });
+      // ملاحظة: يمكنك إزالة الـ alert هنا إذا كنت تفضل الانتقال مباشرة لصفحة النجاح دون رسالة منبثقة
     },
     onError: (error) => {
-      alert(`حدث خطأ أثناء الحجز: ${error.response?.data?.message || error.message}`);
+      alert(`فشل الحجز: ${error.response?.data?.message || error.message}`);
     },
   });
 }

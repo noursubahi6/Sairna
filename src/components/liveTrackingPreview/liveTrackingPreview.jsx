@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Bus, SlidersHorizontal, RotateCcw } from 'lucide-react';
-import Button from '../components/button/Button';
-import { useTrips } from '../hooks/useTrips';
+import Button from '../button/Button';
+import { useTrips } from '../../hooks/useTrips';
+
 
 export default function TripResultsPage() {
-  const [searchParams] = setSearchParams();
+  const [searchParams] = useSearchParams();
   
   const originId = searchParams.get('originId') || '1';
   const destinationId = searchParams.get('destinationId') || '1';
   const date = searchParams.get('date') || '2026-11-05';
-
   // حالات الفلاتر
   const [selectedCompany, setSelectedCompany] = useState('all');
   const [selectedTimeFilter, setSelectedTimeFilter] = useState('all');

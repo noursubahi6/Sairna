@@ -1,35 +1,35 @@
 import axios from 'axios';
 
 const api = axios.create({
+  baseURL: 'https://sairna.abdulrahman-hares.com/api/v1',
   headers: {
-    'Accept': 'application/json',
+    'Content-Type': 'application/json',
   },
 });
 
-// ==========================================
-// 1. قسم شركات النقل
-// ==========================================
-export const getCompanies = async () => {
-  const { data } = await api.get('https://sairna.abdulrahman-hares.com/api/v1/website/companies');
-  return data;
-};
+// جلب الشركات
+export async function getCompanies() {
+  const response = await api.get('/website/companies');
+  return response.data;
+}
 
-// ==========================================
-// 2. قسم الرحلات (بدون استقبال باراميترات خاطئة تسبب خطأ 400)
-// ==========================================
-export const getTrips = async () => {
-  const { data } = await api.get('https://sairna.abdulrahman-hares.com/api/v1/website/trips');
-  return data;
-};
+// جلب الرحلات (مرة واحدة فقط)
+export async function getTrips(params = {}) {
+  const response = await api.get('/website/trips', { params });
+  return response.data;
+}
 
-// رابط تفاصيل رحلة محددة
-export const getTripById = async (id) => {
-  const { data } = await api.get(`https://sairna.abdulrahman-hares.com/api/v1/website/trips/${id}`);
-  return data;
-};
+// جلب مقاعد رحلة محددة
+export async function getTripSeats(tripId) {
+  const response = await api.get(`/website/trips/${tripId}/seats`);
+  return response.data;
+}
 
-// رابط عرض مقاعد رحلة
-export const getTripSeats = async (id) => {
-  const { data } = await api.get(`https://sairna.abdulrahman-hares.com/api/v1/website/trips/${id}/seats`);
-  return data;
-};
+// إنشاء حجز جديد
+export async function createBooking(bookingData) {
+  const response = await api.post('/website/bookings', bookingData);
+  return response.data;
+}
+
+
+export default api;
