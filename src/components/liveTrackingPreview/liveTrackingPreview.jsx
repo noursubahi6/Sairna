@@ -1,171 +1,103 @@
-import React, { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { Bus, SlidersHorizontal, RotateCcw } from 'lucide-react';
-import Button from '../button/Button';
-import { useTrips } from '../../hooks/useTrips';
+import { CheckCircle2, ArrowLeft, MapPin } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
+import { useCities } from "../../hooks/useCities"; // عدلي المسار حسب مكان ملف الـ hooks لديك
+import Button from "../button/Button";
 
-
-export default function TripResultsPage() {
+export default function LiveTrackingPreview() {
   const [searchParams] = useSearchParams();
-  
-  const originId = searchParams.get('originId') || '1';
-  const destinationId = searchParams.get('destinationId') || '1';
-  const date = searchParams.get('date') || '2026-11-05';
-  // حالات الفلاتر
-  const [selectedCompany, setSelectedCompany] = useState('all');
-  const [selectedTimeFilter, setSelectedTimeFilter] = useState('all');
+  const { data: cities = [] } = useCities();
 
-  // استخدام React Query عبر الهوك
-  const { data, isLoading, isError } = useTrips({
-    originId,
-    destinationId,
-    date,
-    companyId: selectedCompany
-  });
+  // 1. قراءة الـ IDs المحددة من الـ URL، وإذا لمط تكن موجودة نضع قيم افتراضية آمنة
+  const originId = searchParams.get("originId");
+  const destinationId = searchParams.get("destinationId");
 
-  const trips = Array.isArray(data) ? data : data?.trips || [];
-
-  // فلترة الوقت محلياً
-  const filteredTrips = trips.filter(trip => {
-    if (selectedTimeFilter === 'all') return true;
-    const hour = parseInt(trip.departureTime?.split(':')[0] || '0', 10);
-    if (selectedTimeFilter === 'morning' && hour < 12) return true;
-    if (selectedTimeFilter === 'afternoon' && hour >= 12 && hour < 17) return true;
-    if (selectedTimeFilter === 'evening' && hour >= 17) return true;
-    return false;
-  });
-
-  const handleResetFilters = () => {
-    setSelectedCompany('all');
-    setSelectedTimeFilter('all');
-  };
+  // 2. العثور على اسم مدينة الانطلاق والوصول الحقيقي من قائمة المدن القادمة من الـ API
+  const originCity = cities.find((c) => String(c.id) === String(originId))?.name || "حلب";
+  const destinationCity = cities.find((c) => String(c.id) === String(destinationId))?.name || "دمشق";
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8 font-cairo dir-rtl" dir="rtl">
-      <div className="max-w-7xl mx-auto">
-        
-        {/* شريط الشركات العلوي */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm mb-6 flex items-center gap-4 overflow-x-auto">
-          <button 
-            onClick={() => setSelectedCompany('all')}
-            className={`flex flex-col items-center justify-center min-w-[100px] p-3 rounded-xl border transition-all ${
-              selectedCompany === 'all' ? 'border-primary bg-primary/5 text-primary' : 'border-gray-200 text-gray-600'
-            }`}
-          >
-            <Bus className="w-6 h-6 mb-1" />
-            <span className="text-xs font-bold">كل الشركات</span>
-          </button>
+    <section className="container my-12 font-cairo" dir="rtl">
+      <div className=" mx-auto">
+        <div className="bg-white border border-border/60 rounded-[32px] overflow-hidden shadow-sairna flex flex-col lg:flex-row items-stretch">
 
-          <button 
-            onClick={() => setSelectedCompany('1')}
-            className={`flex flex-col items-center justify-center min-w-[100px] p-3 rounded-xl border transition-all ${
-              selectedCompany === '1' ? 'border-primary bg-primary/5 text-primary' : 'border-gray-200 text-gray-600'
-            }`}
-          >
-            <span className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-xs mb-1">ش</span>
-            <span className="text-xs font-bold">الشام للنقل</span>
-            <span className="text-[10px] text-amber-500 font-bold">★ 4.9</span>
-          </button>
-        </div>
+          {/* القسم الأيمن: النصوص */}
+          <div className="lg:w-1/2 p-8 lg:p-12 flex flex-col items-start justify-center text-right">
+            <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-soft-teal text-primary text-xs font-bold mb-4 shadow-xs">
+              <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+              <span>وين وصلت الرحلة؟</span>
+            </div>
 
-        {/* عدد الرحلات */}
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-black text-text">
-            {filteredTrips.length} رحلات متاحة <span className="text-sm font-normal text-muted">حمص ← اللاذقية</span>
-          </h2>
-        </div>
+            <h2 className="text-3xl lg:text-4xl font-black text-text tracking-tight mb-3 leading-tight">
+              الطريق قدامك... <br />
+              <span className="text-primary">لحظة بلحظة؟</span>
+            </h2>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          
-          {/* قسم الرحلات (الوسط) */}
-          <div className="lg:col-span-3 flex flex-col gap-4">
-            {isLoading ? (
-              <div className="text-center py-12 text-muted">جاري تحميل الرحلات...</div>
-            ) : isError ? (
-              <div className="text-center py-12 text-red-500">حدث خطأ أثناء جلب البيانات.</div>
-            ) : filteredTrips.length === 0 ? (
-              <div className="text-center py-12 bg-white rounded-2xl shadow-sm text-muted">لا توجد رحلات مطابقة لخياراتك.</div>
-            ) : (
-              filteredTrips.map((trip) => (
-                <div key={trip.id} className="bg-white rounded-2xl p-6 shadow-sm border border-border flex flex-col md:flex-row items-center justify-between gap-6 transition-all hover:shadow-md">
-                  
-                  <div className="flex flex-col items-end md:items-start gap-3 w-full md:w-auto">
-                    <span className="text-xs text-muted">السعر للشخص</span>
-                    <div className="text-2xl font-black text-primary">
-                      {trip.price || '70,000'} <span className="text-xs font-bold">ل.س</span>
-                    </div>
-                    <Button 
-                      variant="primary" 
-                      to={`/book/${trip.id}`} 
-                      className="w-full md:w-auto text-xs !rounded-[11px]"
-                    >
-                      اختيار المقاعد ←
-                    </Button>
-                  </div>
+            <p className="text-xs lg:text-sm text-muted leading-relaxed mb-6">
+              بصفحة التتبع تشوف خط سير الرحلة ومحطاتها وحالتها ضمن نموذج تفاعلي سهل وواضح.
+            </p>
 
-                  <div className="flex items-center justify-between w-full md:w-auto md:flex-1 px-4">
-                    <div className="text-center">
-                      <span className="text-lg font-black block text-text">{trip.arrivalTime || '10:02'}</span>
-                      <span className="text-xs text-muted font-bold">اللاذقية</span>
-                    </div>
+            <div className="flex flex-col gap-3 mb-8 w-full">
+              <div className="flex items-center gap-2.5 text-xs font-extrabold text-text">
+                <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
+                <span>عرض المسار على الخريطة</span>
+              </div>
+              <div className="flex items-center gap-2.5 text-xs font-extrabold text-text">
+                <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
+                <span>وقت وصول تقديري ومحطات الطريق</span>
+              </div>
+            </div>
 
-                    <div className="flex flex-col items-center px-4 flex-1">
-                      <span className="text-[11px] text-muted mb-1">مباشرة</span>
-                      <div className="w-full border-t-2 border-dashed border-gray-300 relative"></div>
-                    </div>
-
-                    <div className="text-center">
-                      <span className="text-lg font-black block text-text">{trip.departureTime || '07:30'}</span>
-                      <span className="text-xs text-muted font-bold">حمص</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 w-full md:w-auto justify-end">
-                    <div className="text-right">
-                      <h4 className="font-extrabold text-sm text-text">{trip.companyName || 'الشام للنقل'}</h4>
-                      <span className="text-[11px] text-amber-500 font-bold">★ 4.9</span>
-                    </div>
-                    <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-black">ش</div>
-                  </div>
-
-                </div>
-              ))
-            )}
+            <Button variant="primary" size="md" icon={ArrowLeft} to="/track">
+              جرب تتبع رحلة
+            </Button>
           </div>
 
-          {/* الفلتر الجانبي (يمين) */}
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-border h-fit flex flex-col gap-6">
-            <div className="flex items-center justify-between border-b pb-3">
-              <span className="font-black text-sm flex items-center gap-2">
-                <SlidersHorizontal className="w-4 h-4 text-primary" /> تصفية النتائج
+          {/* القسم الأيسر: الخريطة مع الأسماء الديناميكية المختارة */}
+          <div className="w-full lg:w-1/2 bg-[#e8f5ec]/60 p-6 lg:p-8 flex flex-col justify-between border-t lg:border-t-0 lg:border-r border-border/60">
+
+            {/* شريط المعلومات العلوي يعرض المدن المختار ديناميكياً */}
+            <div className="flex items-center justify-between mb-4 text-xs font-bold text-muted">
+              <span className="flex items-center gap-1.5 text-text">
+                <MapPin className="w-3.5 h-3.5 text-primary" /> {originCity} – {destinationCity}
               </span>
-              <button onClick={handleResetFilters} className="text-xs text-primary font-bold flex items-center gap-1">
-                <RotateCcw className="w-3 h-3" /> إعادة ضبط
-              </button>
+              <span className="inline-flex items-center gap-1.5 text-primary">
+                <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                معاينة مسار رحلة
+              </span>
             </div>
 
-            {/* فلتر وقت الانطلاق */}
-            <div className="flex flex-col gap-2 pt-3">
-              <span className="text-xs font-bold text-muted">وقت الانطلاق</span>
-              <label className="flex items-center gap-2 text-xs font-bold cursor-pointer">
-                <input type="radio" name="time" checked={selectedTimeFilter === 'all'} onChange={() => setSelectedTimeFilter('all')} className="accent-primary" /> كل الأوقات
-              </label>
-              <label className="flex items-center gap-2 text-xs font-bold cursor-pointer">
-                <input type="radio" name="time" checked={selectedTimeFilter === 'morning'} onChange={() => setSelectedTimeFilter('morning')} className="accent-primary" /> صباحاً (قبل 12)
-              </label>
-              <label className="flex items-center gap-2 text-xs font-bold cursor-pointer">
-                <input type="radio" name="time" checked={selectedTimeFilter === 'afternoon'} onChange={() => setSelectedTimeFilter('afternoon')} className="accent-primary" /> ظهراً (12-17)
-              </label>
-              <label className="flex items-center gap-2 text-xs font-bold cursor-pointer">
-                <input type="radio" name="time" checked={selectedTimeFilter === 'evening'} onChange={() => setSelectedTimeFilter('evening')} className="accent-primary" /> مساءً (بعد 17)
-              </label>
+            {/* إطار الخريطة */}
+            <div className="relative w-full h-[260px] lg:h-[300px] rounded-2xl overflow-hidden border border-border/80 shadow-xs bg-white">
+              <iframe
+                title="Sairna Trip Route Map"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d831513.1458022718!2d36.55!3d35.21!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x1525a772f8832c3f%3A0x46423984e26922d1!2sAleppo%2C%20Syria!5e0!3m2!1sen!2s!4v1650000000000!5m2!1sen!2s"
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                allowFullScreen=""
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                className="w-full h-full object-cover"
+              ></iframe>
+            </div>
+
+            {/* شريط تقدم الرحلة السفلي يعرض أسماء المدن المختار بـ Live */}
+            <div className="mt-4 flex items-center justify-between text-xs text-muted font-bold px-1">
+              <span className="flex items-center gap-1">
+                <MapPin className="w-3.5 h-3.5 text-primary" /> {destinationCity}
+              </span>
+              <div className="flex-1 mx-4 h-1.5 bg-border/60 rounded-full relative overflow-hidden">
+                <div className="absolute right-0 top-0 bottom-0 w-2/3 bg-primary rounded-full"></div>
+              </div>
+              <span className="flex items-center gap-1">
+                <MapPin className="w-3.5 h-3.5 text-primary" /> {originCity}
+              </span>
             </div>
 
           </div>
 
         </div>
-
       </div>
-    </div>
+    </section>
   );
 }
