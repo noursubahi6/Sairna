@@ -19,7 +19,7 @@ export default function PageHeader({
       {/* زخرفة الأرش خلفية */}
       {showArch && (
         <div
-          className={`absolute top-[-100px] w-80 h-80 rounded-full border border-primary/10 pointer-events-none ${
+          className={`absolute top-[-150px] w-80 h-80 rounded-full border border-primary/5 pointer-events-none ${
             archPosition === "left" ? "left-[-100px]" : "right-[-100px]"
           }`}
         />

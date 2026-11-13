@@ -1,83 +1,92 @@
-import { useLocation, useNavigate } from "react-router-dom";
+import React from "react";
+import { Check, Sparkles, Ticket, SlidersHorizontal } from "lucide-react";
 import Button from "../../components/button/Button";
-import { Check, Ticket, Navigation } from "lucide-react";
 
-export const BookingSuccessPage = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  // استلام بيانات الحجز الممررة من صفحة المراجعة
-  const { bookingResult, tripInfo, selectedSeats } = location.state || {};
-
-  // استخراج البيانات الحقيقية أو عرض قيم افتراضية مطابقة للصورة
-  const bookingId = bookingResult?.id || bookingResult?.bookingCode || `SR-${Math.floor(100000 + Math.random() * 900000)}`;
-  const originName = tripInfo?.origin?.name || "حلب";
-  const destinationName = tripInfo?.destination?.name || "دمشق";
-  const seatsList = selectedSeats?.join(', ') || "15";
+export default function BookingSuccessPage({ bookingCode, trip, selectedSeats = [] }) {
+  const originName = trip?.origin?.name || trip?.fromCity || "حلب";
+  const destinationName = trip?.destination?.name || trip?.toCity || "دمشق";
 
   return (
-    <section className="container py-12 font-cairo flex items-center justify-center min-h-[80vh]" dir="rtl">
-      <div className="max-w-xl w-full bg-white rounded-[32px] border border-border p-8 md:p-10 shadow-sm text-center">
-        
-        {/* أيقونة الصح الخضراء */}
-        <div className="w-20 h-20 bg-soft-teal/60 text-primary rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
-          <Check className="w-10 h-10 stroke-[2.5]" />
-        </div>
-
-        {/* الترويسة والعنوان */}
-        <div className="inline-block bg-soft-teal/30 text-primary text-xs font-bold px-3.5 py-1.5 rounded-full mb-3">
-          ✨ صار الحجز جاهز
-        </div>
-        <h2 className="text-2xl md:text-3xl font-black text-text mb-2">
-          يا سلام! تم تأكيد حجزك.
-        </h2>
-        <p className="text-xs md:text-sm text-muted mb-8">
-          انضافت التذكرة إلى «حجوزاتي». هلق بتقدر تراجعها وتتابع الرحلة التجريبية.
-        </p>
-
-        {/* صندوق تفاصيل الحجز (رقم الحجز، الوجهة، المقاعد) */}
-        <div className="bg-surface border border-dashed border-border rounded-2xl p-5 mb-8 grid grid-cols-3 gap-4 items-center">
-          
-          <div className="text-center border-l border-border/60 pl-2">
-            <span className="text-[11px] text-muted block mb-1">رقم الحجز</span>
-            <span className="text-xs md:text-sm font-black text-text block">{bookingId}</span>
-          </div>
-
-          <div className="text-center border-l border-border/60 pl-2">
-            <span className="text-[11px] text-muted block mb-1">الوجهة</span>
-            <span className="text-xs md:text-sm font-black text-text block truncate">{originName} – {destinationName}</span>
-          </div>
-
-          <div className="text-center">
-            <span className="text-[11px] text-muted block mb-1">المقاعد</span>
-            <span className="text-xs md:text-sm font-black text-primary block">{seatsList}</span>
-          </div>
-
-        </div>
-
-        {/* أزرار الإجراءات */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-          <button
-            onClick={() => navigate("/my-bookings")}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl border border-border text-xs font-bold text-text hover:bg-surface transition-all cursor-pointer"
-          >
-            <Navigation className="w-4 h-4 text-primary" />
-            <span>تتبع الرحلة</span>
-          </button>
-
-          <Button
-            onClick={() => navigate("/")}
-            variant="primary"
-            className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 !rounded-2xl text-xs font-bold shadow-md hover:opacity-95 transition-all"
-          >
-            <Ticket className="w-4 h-4" />
-            <span>عرض تذكرتي</span>
-          </Button>
-        </div>
-
+    <div
+      className="bg-[var(--surface)] rounded-3xl shadow-sm border border-[var(--border)] p-8 md:p-10 max-w-xl mx-auto text-center font-cairo my-8"
+      dir="rtl"
+    >
+      {/* دائرة الصح الخضراء */}
+      <div className="w-16 h-16 rounded-full bg-[var(--primary)]/15 text-[var(--primary)] flex items-center justify-center mx-auto mb-4">
+        <Check className="w-8 h-8" strokeWidth={2.8} />
       </div>
-    </section>
-  );
-};
 
-export default BookingSuccessPage;
+      {/* الشارة الصغيرة */}
+      <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] text-xs font-extrabold mb-3">
+        <Sparkles className="w-3.5 h-3.5" />
+        <span>صار الحجز جاهز</span>
+      </div>
+
+      {/* العنوان الرئيسي */}
+      <h2 className="text-2xl md:text-3xl font-black text-[var(--text)] mb-2">
+        يا سلام! <span className="text-[var(--primary)]">تم تأكيد حجزك.</span>
+      </h2>
+      <p className="text-xs text-[var(--muted)] font-bold mb-7">
+        انضافت التذكرة إلى «حجوزاتي». هلق بتقدر تراجعها وتتابع الرحلة التجريبية.
+      </p>
+
+      {/* صندوق تفاصيل التذكرة المنقط */}
+      <div className="grid grid-cols-3 items-center bg-[var(--surface-alt)]/60 border-2 border-dashed border-[var(--border)] rounded-2xl py-4 px-3 mb-7">
+        {/* رقم الحجز */}
+        <div className="border-l border-dashed border-[var(--border)] px-2">
+          <span className="block text-[11px] text-[var(--muted)] font-bold mb-1">
+            رقم الحجز
+          </span>
+          <strong dir="ltr" className="block text-xs md:text-sm font-black text-[var(--text)]">
+            {bookingCode || "SR-0433396"}
+          </strong>
+        </div>
+
+        {/* الوجهة */}
+        <div className="border-l border-dashed border-[var(--border)] px-2">
+          <span className="block text-[11px] text-[var(--muted)] font-bold mb-1">
+            الوجهة
+          </span>
+          <strong className="block text-xs md:text-sm font-black text-[var(--text)]">
+            {originName} ← {destinationName}
+          </strong>
+        </div>
+
+        {/* المقاعد */}
+        <div className="px-2">
+          <span className="block text-[11px] text-[var(--muted)] font-bold mb-1">
+            المقاعد
+          </span>
+          <strong className="block text-xs md:text-sm font-black text-[var(--text)]">
+            {selectedSeats.length > 0
+              ? selectedSeats.map((s) => Number(s).toLocaleString("en-US")).join(" ، ")
+              : "-"}
+          </strong>
+        </div>
+      </div>
+
+      {/* الأزرار باستخدام مكون Button الخاص بكِ */}
+      <div className="flex flex-wrap items-center justify-center gap-3">
+        <Button
+          variant="primary"
+          size="md"
+          icon={Ticket}
+          iconPosition="left"
+          to="/my-bookings"
+        >
+          عرض تذكرتي
+        </Button>
+
+        <Button
+          variant="outline"
+          size="md"
+          icon={SlidersHorizontal}
+          iconPosition="right"
+          to="/track"
+        >
+          تتبع الرحلة
+        </Button>
+      </div>
+    </div>
+  );
+}

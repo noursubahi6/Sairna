@@ -6,8 +6,9 @@ function Companies() {
   const { data: companies, isLoading, isError, error } = useCompanies();
 
   return (
-    <section className="container py-8 font-cairo">
-      <PageHeader
+ <>
+  <div className=" bg-surface-alt border-b border-border">
+       <PageHeader
         archPosition="left"
         breadcrumb={[
           { name: "الرئيسية", path: "/" },
@@ -17,7 +18,12 @@ function Companies() {
         title="شركات بتوصلك"
         titleHighlight="لوين ما بدك."
         description="تعرّف على شركات النقل الموجودة في النموذج واختر الأنسب إلك."
+                showArch={true}
+
       />
+
+     </div>
+   <section className="container py-8 font-cairo">
 
       {isLoading && (
         <div className="text-center py-12 text-muted font-bold">
@@ -39,6 +45,7 @@ function Companies() {
         </div>
       )}
     </section>
+ </>
   );
 }
 

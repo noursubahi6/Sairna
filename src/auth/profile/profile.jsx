@@ -109,7 +109,7 @@ export default function ProfilePage() {
                 variant="primary"
                 size="md"
                 className=" justify-center shadow-md font-bold"
-                onClick={() => (window.location.href = "/bookings")}
+                onClick={() => (window.location.href = "/my-bookings")}
               >
                 التنقل لحجزاتي
               </Button>

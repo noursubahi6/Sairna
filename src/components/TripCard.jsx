@@ -19,20 +19,49 @@ export default function TripCard({ trip, onSelectSeats }) {
   const arrival = trip.arrivalTime || trip.arrivalAt;
 
   const companyId = trip.company?.id || trip.companyId;
-  const companyName = trip.company?.name || trip.companyName || 'شركة النقل';
-  const firstLetter = companyName ? companyName.trim().charAt(2) : "";
+  const companyName = trip.company?.name || trip.companyName || "شركة النقل";
+  const firstLetter = companyName ? companyName.trim().charAt(2) || companyName.trim().charAt(0) : "";
 
   const companyStyle = getCompanyStyle(companyId);
 
-  return (
-    <article className="bg-[var(--surface)] border border-[var(--border)] rounded-[17px] overflow-hidden transition-all duration-250 hover:border-[#b4e4db] hover:shadow-[var(--shadow-md)] hover:-translate-y-[3px] font-cairo mb-4" dir="rtl">
+  // استخراج رابط صورة الشركة من كائن الرحلة أياً كان اسم الحقل القادم من الـ API
+  const rawLogo =
+    trip.company?.logo ||
+    trip.company?.logoUrl ||
+    trip.company?.image ||
+    trip.companyLogo ||
+    trip.logo;
 
+  const logoSrc = rawLogo
+    ? rawLogo.startsWith("http")
+      ? rawLogo
+      : `https://sairna.abdulrahman-hares.com${rawLogo.startsWith("/") ? "" : "/"}${rawLogo}`
+    : null;
+
+  return (
+    <article
+      className="bg-[var(--surface)] border border-[var(--border)] rounded-[17px] overflow-hidden transition-all duration-250 hover:border-[#b4e4db] hover:shadow-[var(--shadow-md)] hover:-translate-y-[3px] font-cairo mb-4"
+      dir="rtl"
+    >
       {/* 1. رأس الكارت */}
       <div className="flex items-center justify-between px-[23px] pt-[19px] pb-[13px] gap-[10px]">
         <div className="flex items-center gap-[11px]">
-          <div className={`w-[49px] h-[49px] flex-shrink-0 rounded-[14px] grid place-items-center font-black text-[27px] shadow-[inset_0_0_0_1px_rgba(0,0,0,0.02)] ${companyStyle.bgBadge}`}>
-            {firstLetter}
-          </div>
+          {logoSrc ? (
+            <div className="w-[49px] h-[49px] flex-shrink-0 rounded-[14px] bg-white border border-[var(--border)]/60 p-1 flex items-center justify-center overflow-hidden shadow-[inset_0_0_0_1px_rgba(0,0,0,0.02)]">
+              <img
+                src={logoSrc}
+                alt={companyName}
+                className="w-full h-full object-contain rounded-[10px]"
+              />
+            </div>
+          ) : (
+            <div
+              className={`w-[49px] h-[49px] flex-shrink-0 rounded-[14px] grid place-items-center font-black text-[27px] shadow-[inset_0_0_0_1px_rgba(0,0,0,0.02)] ${companyStyle.bgBadge}`}
+            >
+              {firstLetter}
+            </div>
+          )}
+
           <div>
             <div className="flex items-center gap-2">
               <strong className="text-[13px] font-extrabold text-[var(--text)]">{companyName}</strong>
@@ -40,11 +69,11 @@ export default function TripCard({ trip, onSelectSeats }) {
             {/* عرض النجمة المفرغة باللون المطلوب وتحتها الـ subtitle */}
             <div className="flex items-center gap-1.5 mt-0.5">
               <span className="text-[11px] font-black text-[var(--text)] flex items-center gap-1">
-                {companyStyle.rating}
+                {trip.company?.rating ?? companyStyle.rating}
                 <Star size={12} className="text-[#E8A43D]" strokeWidth={2.2} />
               </span>
               <span className="text-[11px] text-[var(--muted)] font-bold">
-                - {companyStyle.subtitle}
+                - {trip.company?.subtitle || companyStyle.subtitle}
               </span>
             </div>
           </div>
@@ -64,7 +93,7 @@ export default function TripCard({ trip, onSelectSeats }) {
               {formatTime(arrival)}
             </b>
             <span className="text-[11px] text-[var(--muted)] font-extrabold">
-              {trip.destination?.name || trip.toCity || 'مدينة الوصول'}
+              {trip.destination?.name || trip.toCity || "مدينة الوصول"}
             </span>
           </div>
 
@@ -77,7 +106,7 @@ export default function TripCard({ trip, onSelectSeats }) {
               <i className="flex-1 border-t border-dashed border-[#b6ccd2]"></i>
             </div>
             <small className="text-[10px] text-[var(--primary)] font-extrabold">
-              {trip.durationFormatted || 'رحلة مباشرة'}
+              {trip.durationFormatted || "رحلة مباشرة"}
             </small>
           </div>
 
@@ -87,7 +116,7 @@ export default function TripCard({ trip, onSelectSeats }) {
               {formatTime(departure)}
             </b>
             <span className="text-[11px] text-[var(--muted)] font-extrabold">
-              {trip.origin?.name || trip.fromCity || 'مدينة الانطلاق'}
+              {trip.origin?.name || trip.fromCity || "مدينة الانطلاق"}
             </span>
           </div>
         </div>
@@ -126,7 +155,7 @@ export default function TripCard({ trip, onSelectSeats }) {
         </span>
 
         <div className="mr-auto inline-flex items-center gap-[5px] text-[var(--muted)] text-[10px]">
-          <span>⟷</span> {trip.distance || 'مسافة الرحلة'}
+          <span>⟷</span> {trip.distance || "مسافة الرحلة"}
         </div>
       </div>
     </article>

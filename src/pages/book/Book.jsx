@@ -1,5 +1,5 @@
 import PageHeader from "../../components/PAGhkjf/page-hero";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import TripCard from "../../components/TripCard";
 import { useCompanies, useTrips } from "../../hooks/useTrips";
@@ -9,15 +9,37 @@ import { CompanySelector } from "../../components/CompanySelector";
 import TripSearchForm from "../../search/TripSearchForm";
 import { ResultsHeader } from "../../components/ResultsHeader/ResultsHeader";
 import { Bus } from "lucide-react";
+import { useTripSearchStore } from "../../store/useTripSearchStore"; // 1. استيراد الستور
 
 export const Book = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  const originId = searchParams.get("originId") || "";
-  const destinationId = searchParams.get("destinationId") || "";
-  const date = searchParams.get("date") || "";
-  const passengers = searchParams.get("passengers") || "1";
+  // 2. جلب القيم ودوال التعديل من Zustand Store
+  const {
+    originId: storeOriginId,
+    destinationId: storeDestinationId,
+    tripDate: storeDate,
+    passengers: storePassengers,
+    setOriginId,
+    setDestinationId,
+    setTripDate,
+    setPassengers,
+  } = useTripSearchStore();
+
+  // 3. الأولوية للـ URL إذا وجد، وإلا نأخذ القيمة المحفوظة في Zustand
+  const originId = searchParams.get("originId") || storeOriginId;
+  const destinationId = searchParams.get("destinationId") || storeDestinationId;
+  const date = searchParams.get("date") || storeDate;
+  const passengers = searchParams.get("passengers") || storePassengers || "1";
+
+  // مزامنة الـ URL مع الستور في حال دخل المستخدم لرابط مباشر يحتوي على بارامترات
+  useEffect(() => {
+    if (searchParams.get("originId")) setOriginId(searchParams.get("originId"));
+    if (searchParams.get("destinationId")) setDestinationId(searchParams.get("destinationId"));
+    if (searchParams.get("date")) setTripDate(searchParams.get("date"));
+    if (searchParams.get("passengers")) setPassengers(searchParams.get("passengers"));
+  }, [searchParams, setOriginId, setDestinationId, setTripDate, setPassengers]);
 
   // جلب المدن لاستخراج أسماء المدن الحقيقية ديناميكياً
   const { data: citiesData } = useCities();
@@ -72,35 +94,35 @@ export const Book = () => {
     return result;
   }, [trips, selectedTimeSlot, sortBy]);
 
-  const handleSearch = (searchData) => {
-    console.log("بيانات البحث:", searchData);
-  };
-
   return (
-    <section className="container py-8">
-  <div className="grid grid-cols-[1fr_auto] items-center ">
-  {/* عمود النصوص (يأخذ المساحة المتاحة كاملة) */}
-  <div>
-    <PageHeader
-      showArch={false}
-      archPosition="left"
-      breadcrumb={[{ name: "الرئيسية", path: "/" }, { name: "نتائج البحث" }]}
-      badgeText="لتكمل الطريق"
-      title="اختار الرحلة اللي"
-      titleHighlight="بتشبهك."
-      description="قارن بين الشركات والأوقات، واحجز مقعدك بكل سهولة."
-    />
-  </div>
+    <>
+      <div className="w-full border-b border-border bg-surface-alt pb-6" dir="rtl">
+        <div className="max-w-7xl mx-auto px-4 flex items-center justify-between gap-6">
+          <div className="flex-1">
+            <PageHeader
+              archPosition="left"
+              breadcrumb={[{ name: "الرئيسية", path: "/" }, { name: "نتائج البحث" }]}
+              badgeText="لتكمل الطريق"
+              title="اختار الرحلة اللي"
+              titleHighlight="بتشبهك."
+              description="قارن بين الشركات والأوقات، واحجز مقعدك بكل سهولة."
+            />
+          </div>
 
-  {/* عمود أيقونة الباص في أقصى اليسار */}
-  <div className="">
-    <Bus className="text-[#0bc7b7f1] w-20 h-20 -rotate-12" />
-  </div>
-</div>
-      <TripSearchForm showTitleSection={false} onSearch={handleSearch} />
+          <div className="md:flex items-center justify-center pl-4 shrink-0">
+            <Bus className="text-primary/25 w-24 h-24 -rotate-12" strokeWidth={1.5} />
+          </div>
+        </div>
+      </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-8 font-cairo" dir="rtl">
+      <section className="max-w-7xl mx-auto px-4 pb-12 font-cairo" dir="rtl">
+        {/* الفورم هنا سيعرض تلقائياً نفس المدن والتاريخ وعدد المسافرين المحفوظة */}
+        <div className="relative z-10 -mt-10 mb-8">
+          <TripSearchForm showTitleSection={false} />
+        </div>
+
         <CompanySelector selectedCompanyId={selectedCompanyId} onSelectCompany={setSelectedCompanyId} />
+
         <div className="py-2">
           <ResultsHeader
             tripsCount={filteredAndSortedTrips.length}
@@ -112,7 +134,8 @@ export const Book = () => {
             onSortChange={setSortBy}
           />
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mt-4">
           <div className="lg:col-span-1">
             <FiltersSidebar
               companies={companies}
@@ -123,7 +146,7 @@ export const Book = () => {
             />
           </div>
 
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-3 space-y-4">
             {isTripsLoading ? (
               <div className="text-center py-12 text-slate-400 font-medium">جاري تحميل الرحلات من السيرفر...</div>
             ) : filteredAndSortedTrips.length === 0 ? (
@@ -136,13 +159,11 @@ export const Book = () => {
                   key={trip.id}
                   trip={trip}
                   onSelectSeats={() => {
-                    const currentParams = new URLSearchParams(window.location.search);
-                    const passengersCount = currentParams.get("passengers") || 1;
-
+                    // 4. تمرير عدد المسافرين مباشرة من المتغير الموحد دون الحاجة لقراءة window.location
                     navigate(`/book/seats/${trip.id}`, {
                       state: {
                         trip,
-                        passengers: Number(passengersCount),
+                        passengers: Number(passengers),
                       },
                     });
                   }}
@@ -151,8 +172,8 @@ export const Book = () => {
             )}
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </>
   );
 };
 

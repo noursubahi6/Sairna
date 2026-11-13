@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom"; // استبدليها بـ import Link from "next/link"; لو عم تشتغلي Next.js
+  import { Link } from "react-router-dom"; // استبدليها بـ import Link from "next/link"; لو عم تشتغلي Next.js
 
 export default function Button({
   children,

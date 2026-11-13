@@ -2,17 +2,18 @@ import { Routes, Route } from "react-router-dom";
 import Layout from "./layout/layout";
 import HomePage from "./pages/homePage/HomePage";
 import Companies from "./pages/companies/Companies";
-import MyBookings, { MyBookingsPage } from "./pages/myBookings/MyBookings";
+import MyBookings from "./pages/myBookings/MyBookings";
 import Track from "./pages/track/Track";
 import Book from "./pages/book/Book";
 import LoginPage from "./auth/login/login-page";
 import NewAccount from "./auth/new-account/new-account";
 import ForgetPassword from "./auth/forget-password/forget-password";
 import ProfilePage from "./auth/profile/profile";
-import { PassengerDetailsPage } from "./pages/PassengerDetailsPage/PassengerDetailsPage";
-import { ReviewBookingPage } from "./pages/ReviewBookingPage/ReviewBookingPage";
-import { SeatSelectionPage } from "./pages/SeatSelectionPage/SeatSelectionPage";
-import { BookingSuccessPage } from "./pages/BookingSuccessPage/BookingSuccessPage";
+import  PassengerDetailsPage  from "./pages/PassengerDetailsPage/PassengerDetailsPage";
+import  ReviewBookingPage  from "./pages/ReviewBookingPage/ReviewBookingPage";
+import  SeatSelectionPage  from "./pages/SeatSelectionPage/SeatSelectionPage";
+import  BookingSuccessPage  from "./pages/BookingSuccessPage/BookingSuccessPage";
+import MyBookingsPage from "./pages/myBookings/MyBookings";
 
 function App() {
   return (
@@ -37,6 +38,7 @@ function App() {
 <Route path="/book/review" element={<ReviewBookingPage />} />
 <Route path="/book/success" element={<BookingSuccessPage />} />
 <Route path="/my-bookings" element={<MyBookingsPage />} />
+{/* <Route path="/my-bookings/:bookingId" element={<TicketDetailsPage />} /> */}
       </Route>
     </Routes>
   );

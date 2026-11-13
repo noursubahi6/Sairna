@@ -1,4 +1,5 @@
 import { Star, Wifi, Zap, Snowflake, ArrowLeft } from "lucide-react";
+import { getCompanyStyle } from "../constants/companyStyles";
 import Button from "../button/Button";
 
 // خريطة ميزات مؤقتة تعتمد على ID الشركة لحين تحديث الـ Backend
@@ -10,19 +11,42 @@ const mockFeaturesMap = {
   ],
   2: [
     { key: "ac", label: "مكيف", icon: Snowflake },
+    { key: "seats", label: "مقاعد واسعة", icon: Zap },
   ],
   3: [
     { key: "ac", label: "مكيف", icon: Snowflake },
     { key: "wifi", label: "Wi-Fi", icon: Wifi },
   ],
+  4: [
+    { key: "ac", label: "مكيف", icon: Snowflake },
+    { key: "usb", label: "شحن USB", icon: Zap },
+  ],
+};
+
+// دالة مساعدة لربط اسم الشركة بالـ ID الخاص بها في ملف الستايلات في حال الاعتماد على الاسم
+const resolveCompanyId = (company) => {
+  const name = company?.name || "";
+  if (name.includes("الشام")) return 1;
+  if (name.includes("الفرات")) return 2;
+  if (name.includes("النورس")) return 3;
+  if (name.includes("الاتحاد")) return 4;
+  return company?.id;
 };
 
 export default function CompanyCard({ company, onSelect }) {
-  // استخراج أول حرف من اسم الشركة إذا لم يوجد شعار
-  const firstLetter = company?.name ? company.name.charAt(2) : "ش";
+  // تحديد الـ ID الفعلي وجلب الستايل المطابق له
+  const resolvedId = resolveCompanyId(company);
+  const style = getCompanyStyle(resolvedId);
 
-  // تجميع الميزات: استخدام ميزات الباك إند إذا وجدت، أو الخريطة المؤقتة بناءً على الـ ID
-  const amenities = company?.features || mockFeaturesMap[company?.id] || [
+  // استخراج أول حرف من اسم الشركة (تخطي "ال" التعريف إن وجدت)
+  const cleanName = company?.name ? company.name.replace(/^ال/, "") : "ش";
+  const firstLetter = cleanName.charAt(0);
+
+  // التقييم من 5 (يأخذه من الباك إند إن وجد، وإلا من ملف الستايلات)
+  const rating = company?.rating || style.rating;
+
+  // تجميع الميزات
+  const amenities = company?.features || mockFeaturesMap[resolvedId] || [
     { key: "ac", label: "مكيف", icon: Snowflake },
   ];
 
@@ -31,11 +55,12 @@ export default function CompanyCard({ company, onSelect }) {
       className="group company-card relative bg-surface border border-border rounded-[20px] p-6 transition-all duration-300 ease-in-out hover:-translate-y-1.5 hover:shadow-xl font-cairo flex flex-col justify-between"
     >
       <div>
-        {/* رأس الكرت (company-card-head): التقييم على اليسار والشعار على اليمين */}
+        {/* رأس الكرت: الشعار الملون على اليمين وشارة التقييم على اليسار */}
         <div className="company-card-head flex items-start justify-between gap-2 mb-5">
-          {/* شارة التقييم */}
-
-          <div className="w-14 h-14 rounded-2xl bg-soft-teal flex items-center justify-center text-primary font-black text-2xl border border-primary/10 shrink-0">
+          {/* مربع الشعار أو الحرف الأول بألوان الشركة */}
+          <div
+            className={`w-12 h-16 rounded-2xl flex items-center justify-center font-black text-3xl shrink-0 transition-transform duration-300 group-hover:scale-105 ${style.bgBadge}`}
+          >
             {company?.logoUrl ? (
               <img
                 src={company.logoUrl}
@@ -46,16 +71,17 @@ export default function CompanyCard({ company, onSelect }) {
               <span>{firstLetter}</span>
             )}
           </div>
-           <div className="inline-flex items-center gap-1 bg-soft-teal text-primary px-2.5 py-1 rounded-full text-xs font-bold">
-            <Star className="w-3.5 h-3.5 fill-current text-primary" />
-            <span>5 / 4.9</span>
-          </div>
 
+          {/* شارة التقييم من 5 مطابقة للصورة */}
+          <div className="inline-flex items-center gap-1 bg-[#d5f5ef] text-[#0d9488] px-2 py-1 rounded-full text-xs font-extrabold">
+            <Star className="w-3.5 h-3.5 stroke-[2.2]" />
+            <span>{rating} / 5</span>
+          </div>
         </div>
 
         {/* عنوان واسم الشركة والمعلومات */}
-        <div className="">
-          <h2 className="text-xl font-extrabold text-text mb-1 group-hover:text-primary transition-colors duration-200">
+        <div>
+          <h2 className="text-xl font-extrabold text-text mb-1.5 group-hover:text-primary transition-colors duration-200">
             {company?.name || "اسم الشركة"}
           </h2>
           <p className="text-xs text-muted leading-relaxed">
@@ -63,44 +89,50 @@ export default function CompanyCard({ company, onSelect }) {
           </p>
         </div>
 
-        {/* قائمة الميزات والخدمات (company-amenities) */}
-        <div className="company-amenities flex flex-wrap gap-2 my-4">
+        {/* قائمة الميزات والخدمات */}
+        <div className="company-amenities flex flex-wrap gap-2 mt-15">
           {amenities.map((item, idx) => {
             const IconComponent = item.icon;
             return (
               <span
                 key={idx}
-                className="service-pill inline-flex items-center gap-2 bg-surface-alt text-muted text-xs font-bold px-3 py-1.5 rounded-xl border border-border/50"
+                className="service-pill inline-flex items-center gap-1.5 bg-surface-alt text-muted text-xs font-bold px-3 py-1.5 rounded-xl border border-border/50"
               >
-                {IconComponent && <IconComponent className="w-3.5 h-3.5 text-primary shrink-0" />}
+                {IconComponent && (
+                  <IconComponent className="w-3.5 h-3.5 text-muted shrink-0" />
+                )}
                 <span>{item.label}</span>
               </span>
             );
           })}
         </div>
 
-        {/* قسم البيانات السريعة (company-meta) */}
+        {/* قسم البيانات السريعة */}
         <div className="company-meta grid grid-cols-2 gap-3 border-t border-border pt-4 pb-1 my-4 text-center">
           <div className="flex flex-col items-center justify-center">
             <b className="text-base font-black text-text">12+</b>
-            <small className="text-[10px] text-muted font-bold mt-0.5">وجهة تجريبية</small>
+            <small className="text-[10px] text-muted font-bold mt-0.5">
+              وجهة تجريبية
+            </small>
           </div>
           <div className="flex flex-col items-center justify-center">
             <b className="text-base font-black text-text">يومياً</b>
-            <small className="text-[10px] text-muted font-bold mt-0.5">مواعيد متاحة</small>
+            <small className="text-[10px] text-muted font-bold mt-0.5">
+              مواعيد متاحة
+            </small>
           </div>
         </div>
       </div>
 
-      {/* زر إجراء عرض رحلات الشركة باستخدام المكون الخاص بك */}
+      {/* زر إجراء عرض رحلات الشركة */}
       <div className="mt-2">
         <Button
-        to="/book"
+          to="/book"
           variant="outline"
           size="md"
           icon={ArrowLeft}
           iconPosition="right"
-          className="w-full justify-center group-hover:border-primary   transition-all duration-300"
+          className={`w-full justify-center transition-all duration-300 group-hover:${style.borderColor}`}
           onClick={() => onSelect && onSelect(company)}
         >
           عرض رحلات الشركة
